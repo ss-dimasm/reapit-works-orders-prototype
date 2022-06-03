@@ -1,42 +1,60 @@
-import React, { FC } from 'react'
-import { Title, BodyText, PageContainer, PersistantNotification, elMb7 } from '@reapit/elements'
+import React, { FC, useCallback, useMemo, useState } from 'react'
 
-export const HomePage: FC = () => (
-  <PageContainer>
-    <Title>Welcome To Reapit Foundations</Title>
-    <PersistantNotification className={elMb7} isExpanded intent="success" isInline isFullWidth>
-      You are now authenticated against our sandbox data.
-    </PersistantNotification>
-    <BodyText hasGreyText>
-      Your Reapit connectSession object is available via the useReapitConnect hook and will be automatically refreshed
-      unless you logout. This will provide you with an accessToken and login identity information to authenticate
-      against our plaform APIs. For more on this{' '}
-      <a
-        href="https://developers.reapit.cloud/api-docs//api/web#connect-session"
-        target="_blank"
-        rel="noreferrer noopener"
-      >
-        visit here.
-      </a>
-    </BodyText>
-    <BodyText hasGreyText>
-      There is a sample fetch service that pulls Appointment Config Types from Foundations API to demonstrate fetching
-      data using this scaffold, see the &lsquo;Data&rsquo; page in the navigation bar. Naturally you can replace this
-      endpoint in the platform-api file with an API of your choosing from the API explorer in the developer portal. For
-      our API explorer{' '}
-      <a href="https://developers.reapit.cloud/swagger" target="_blank" rel="noreferrer noopener">
-        visit here.
-      </a>
-    </BodyText>
-    <BodyText hasGreyText>
-      Included in the scaffold is the latest version of the Elements UI library. This is the simplest way for you to
-      adhere to the basic style guidelines for Marketplace applications. For more on this{' '}
-      <a href="https://developers.reapit.cloud/api-docs/elements" target="_blank" rel="noreferrer noopener">
-        visit here.{' '}
-      </a>
-      See also the &lsquo;UI&rsquo; page in the navigation bar for examples of how to use Elements components.
-    </BodyText>
-  </PageContainer>
-)
+import { PersistentNotification, useModal } from '@reapit/elements'
+import { UserRoleContext, UserRoleContextType } from 'contexts/user-role-context'
 
+import { CompanySubPage, NegotiatorSubPage, TenantSubPage } from 'components/ui/home-page'
+import UserRoleModalContent from 'components/ui/modals'
+
+type HomePageProps = {}
+
+export const HomePage: FC<HomePageProps> = () => {
+  const [userStatus, setUserStatus] = useState<Pick<UserRoleContextType, 'userId' | 'userRole'>>({
+    userId: null,
+    userRole: null,
+  })
+
+  const { Modal: UserRoleModal, openModal: openUserRoleModal, closeModal: closeUserRoleModal } = useModal()
+
+  const userRoleContextValue = useMemo(
+    (): UserRoleContextType => ({
+      ...userStatus,
+      changeUserRole: setUserStatus,
+      openUserRoleModal,
+      closeUserRoleModal,
+    }),
+    [userStatus],
+  )
+
+  const availableSubPage = useMemo(
+    (): {
+      [val in NonNullable<Pick<UserRoleContextType, 'userRole'>['userRole']>]: JSX.Element
+    } => ({
+      company: <CompanySubPage />,
+      negotiator: <NegotiatorSubPage />,
+      tenant: <TenantSubPage />,
+    }),
+    [],
+  )
+
+  const renderJSXElement = useCallback(
+    ({ userId, userRole }: typeof userStatus): JSX.Element => {
+      if (userRole && userId) {
+        return availableSubPage[userRole]
+      }
+      return <h1>You&apos;e not set role yet!</h1>
+    },
+    [userStatus],
+  )
+
+  return (
+    <UserRoleContext.Provider value={userRoleContextValue}>
+      <PersistentNotification isFixed onClick={openUserRoleModal} />
+      {renderJSXElement({ ...userStatus })}
+      <UserRoleModal>
+        <UserRoleModalContent />
+      </UserRoleModal>
+    </UserRoleContext.Provider>
+  )
+}
 export default HomePage
