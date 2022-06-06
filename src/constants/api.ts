@@ -6,4 +6,5 @@ export const BASE_HEADERS = {
 export const URLS = {
   CONFIGURATION_APPOINTMENT_TYPES: '/configuration/appointmentTypes',
   WORKS_ORDERS: '/worksOrders',
+  NEGOTIATORS: '/negotiators',
 }

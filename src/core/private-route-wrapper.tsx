@@ -27,7 +27,7 @@ export const PrivateRouteWrapper: FC<PrivateRouteWrapperProps> = ({ children }) 
   }
 
   return (
-    <MainContainer>
+    <MainContainer style={{ overflow: 'hidden' }}>
       <Nav />
       <Suspense fallback={<Loader label="Loading" fullPage />}>{children}</Suspense>
     </MainContainer>

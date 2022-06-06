@@ -11,6 +11,6 @@ export const Axios = axios.create({
   },
 })
 ;(async () => {
-  const connectSession = (await reapitConnectBrowserSession.connectSession()) as ReapitConnectSession
-  Axios.defaults.headers.common['Authorization'] = connectSession.accessToken
+  const { accessToken } = (await reapitConnectBrowserSession.connectSession()) as ReapitConnectSession
+  Axios.defaults.headers.common['Authorization'] = accessToken
 })()
